@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Your PIN</title>
+  </head>
+  <body>
+    <h1>Payment successful</h1>
+    <p id="status">Loading your PIN...</p>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get("session_id");
+      const statusEl = document.getElementById("status");
+      const endpoint = "https://YOUR_PROJECT_ID.supabase.co/functions/v1/get-pin";
+
+      let tries = 0;
+      const maxTries = 10;
+
+      async function loadPin() {
+        try {
+          const res = await fetch(`${endpoint}?session_id=${encodeURIComponent(sessionId)}`);
+          const data = await res.json();
+
+          if (data.pin) {
+            statusEl.textContent = `Your PIN: ${data.pin}`;
+            return;
+          }
+
+          if (data.status === "pending" && tries < maxTries) {
+            tries++;
+            statusEl.textContent = "Finalizing your PIN, please wait...";
+            setTimeout(loadPin, 1000);
+            return;
+          }
+
+          statusEl.textContent = "Your payment is complete, but the PIN is not ready yet. Please contact support if this persists.";
+        } catch (e) {
+          statusEl.textContent = "Could not load your PIN.";
+        }
+      }
+
+      if (!sessionId) {
+        statusEl.textContent = "Missing session ID.";
+      } else {
+        loadPin();
+      }
+    </script>
+  </body>
+</html>
