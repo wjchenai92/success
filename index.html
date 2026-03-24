@@ -20,6 +20,11 @@
       async function loadPin() {
         try {
           const res = await fetch(`${endpoint}?session_id=${encodeURIComponent(sessionId)}`);
+
+          if (!res.ok) {
+            throw new Error("Network response was not ok");
+          }
+
           const data = await res.json();
 
           if (data.pin) {
@@ -34,8 +39,10 @@
             return;
           }
 
-          statusEl.textContent = "Your payment is complete, but the PIN is not ready yet. Please contact support if this persists.";
+          statusEl.textContent =
+            "Your payment is complete, but the PIN is not ready yet. Please contact support if this persists.";
         } catch (e) {
+          console.error(e);
           statusEl.textContent = "Could not load your PIN.";
         }
       }
